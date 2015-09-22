@@ -55,18 +55,22 @@ public class MySqlDb{
         return records;
     }
     
-    public boolean deleteOneRecord(String tableName, String key, String value) throws SQLException {
+    public void deleteByPrimaryKey(String tableName, String primaryKey, Object primaryKeyValue) throws SQLException {
         
-        List<Map<String,Object>> records = new ArrayList<>();
-        records = findAllRecords(tableName);
+        
         Statement stmt = conn.createStatement();
-        String sql = "DELETE FROM " + tableName + " WHERE " + key + " = " + value;
+        String sql = "DELETE FROM " + tableName + " WHERE " + primaryKey + " = ";
+        if(primaryKeyValue instanceof String){
+            sql += "'" + primaryKeyValue.toString() + "'";
+        }else{
+            sql += primaryKeyValue.toString();
+        }
         stmt.executeUpdate(sql);
         
-        return true;
+        
     }
     
-    public boolean createOneRecord(String tableName, ArrayList newRecord) throws SQLException {
+    public void createOneRecord(String tableName, ArrayList newRecord) throws SQLException {
         
         
         Object[] recordValueArray = newRecord.toArray();
@@ -80,27 +84,25 @@ public class MySqlDb{
         String sql = "INSERT INTO " + tableName + " VALUES (" + recordValueString + ")";
         
         stmt.executeUpdate(sql);
-        
-        return true;
     }
     
-    public boolean updateOneRecord(String tableName, Map<String,Object> currentRecord,Map<String,Object> updateRecord) throws SQLException {
-        List<Map<String,Object>> records = new ArrayList<>();
+    public void updateByPrimaryKey(String tableName, String primaryKey, Object primaryKeyValue, Map<String,Object> updateRecord) throws SQLException {
+
         Map<String, Object> record = updateRecord;
-        records = findAllRecords(tableName);
         Object[] recordKeyArray = record.keySet().toArray();
         Object[] recordObjectArray = record.values().toArray();
-        String key = currentRecord.keySet().toArray()[0].toString();
-        String value = currentRecord.values().toArray()[0].toString();
         String recordString = recordKeyArray[0].toString() + "= '" + recordObjectArray[0].toString() + "'";
         for(int i = 1; i < recordKeyArray.length-1; i++){
             recordString += "," + recordKeyArray[i].toString() + "= '" + recordObjectArray[i].toString() + "'";
         }
         Statement stmt = conn.createStatement();
-        String sql = "UPDATE " + tableName + " SET "  + recordString + " WHERE " + key + " = '" + value + "'";
+        String sql = "UPDATE " + tableName + " SET "  + recordString + " WHERE " + primaryKey + " = ";
+        if(primaryKeyValue instanceof String){
+            sql += "'" + primaryKeyValue.toString() + "'";
+        }else{
+            sql += primaryKeyValue.toString();
+        }
         stmt.executeUpdate(sql);
-        
-        return true;
     }
     
     public static void main(String[] args) throws Exception {
@@ -115,7 +117,7 @@ public class MySqlDb{
         
         System.out.println("D - Delete:");
         
-//        db.deleteOneRecord("author", "author_name", "'John Doe'");
+//        db.deleteByPrimaryKey("author", "author_name", "John Doe");
 //        
 //        records = db.findAllRecords("author");
 //        for(Map record:records){
@@ -137,10 +139,8 @@ public class MySqlDb{
         System.out.println("Create = Working");
         System.out.println("U - Update:");
 //        Map<String,Object> updateRecord = new HashMap();
-//        Map<String,Object> currentRecord = new HashMap();
-//        currentRecord.put("author_id", "3");
-//        updateRecord.put("author_name", "John Smith");
-//        db.updateOneRecord("author", currentRecord,updateRecord);
+//        updateRecord.put("author_name", "Bill Smith");
+//        db.updateByPrimaryKey("author", "author_id", "3",updateRecord);
 //        
 //        records = db.findAllRecords("author");
 //        for(Map record:records){

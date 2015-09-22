@@ -7,6 +7,7 @@ package bookSample;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -70,19 +71,33 @@ public class MySqlDb{
         
     }
     
-    public void createOneRecord(String tableName, ArrayList newRecord) throws SQLException {
+    public void deleteByPrimaryKeyPrepareStatement(String tableName, String primaryKey, Object primaryKeyValue) throws SQLException {
+        
+
+        String sql = "DELETE FROM " + tableName + " WHERE " + primaryKey + " = ?";
+        
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setObject(1, primaryKeyValue);
+        stmt.executeUpdate();
         
         
-        Object[] recordValueArray = newRecord.toArray();
+    }
+    
+    public void createOneRecord(String tableName, List newRecordCols, List newRecordValues) throws SQLException {
+        
+        Object[] recordColsArray = newRecordCols.toArray();
+        Object[] recordValueArray = newRecordValues.toArray();
+        String recordColsString = recordColsArray[0].toString();
         String recordValueString = recordValueArray[0].toString();
         for(int i = 1; i < recordValueArray.length; i++){
+            recordColsString += ", '" + recordColsArray[i].toString() + "'"; 
             recordValueString += ", '" + recordValueArray[i].toString() + "'"; 
                     
         }
         
-        Statement stmt = conn.createStatement();
-        String sql = "INSERT INTO " + tableName + " VALUES (" + recordValueString + ")";
         
+        String sql = "INSERT INTO " + tableName + " ( " + recordColsString + " ) VALUES (" + recordValueString + ")";
+        Statement stmt = conn.createStatement();
         stmt.executeUpdate(sql);
     }
     
@@ -95,13 +110,14 @@ public class MySqlDb{
         for(int i = 1; i < recordKeyArray.length-1; i++){
             recordString += "," + recordKeyArray[i].toString() + "= '" + recordObjectArray[i].toString() + "'";
         }
-        Statement stmt = conn.createStatement();
+        
         String sql = "UPDATE " + tableName + " SET "  + recordString + " WHERE " + primaryKey + " = ";
         if(primaryKeyValue instanceof String){
             sql += "'" + primaryKeyValue.toString() + "'";
         }else{
             sql += primaryKeyValue.toString();
         }
+        Statement stmt = conn.createStatement();
         stmt.executeUpdate(sql);
     }
     
@@ -117,7 +133,7 @@ public class MySqlDb{
         
         System.out.println("D - Delete:");
         
-//        db.deleteByPrimaryKey("author", "author_name", "John Doe");
+//        db.deleteByPrimaryKeyPrepareStatement("author", "author_id", "3");
 //        
 //        records = db.findAllRecords("author");
 //        for(Map record:records){
@@ -126,16 +142,21 @@ public class MySqlDb{
         System.out.println("Delete = Working");
         System.out.println("C - Create:");
         
-//        ArrayList newRecord = new ArrayList();
-//        newRecord.add("NULL");
-//        newRecord.add("Jared Kowalske");
-//        newRecord.add("1991-08-27");
-//        db.createOneRecord("author", newRecord);
-//        
-//        records = db.findAllRecords("author");
-//        for(Map record:records){
-//            System.out.println(record);
-//        }
+/*       
+        List newRecordCols = new ArrayList();
+        newRecordCols.add("author_name");
+        newRecordCols.add("date_created");
+        List newRecordValues = new ArrayList();      
+        newRecordValues.add("Jared Kowalske");
+        newRecordValues.add("1991-08-27");
+        db.createOneRecord("author", newRecordCols, newRecordValues);
+        
+        records = db.findAllRecords("author");
+        for(Map record:records){
+            System.out.println(record);
+        }
+        
+        */
         System.out.println("Create = Working");
         System.out.println("U - Update:");
 //        Map<String,Object> updateRecord = new HashMap();
